@@ -37,41 +37,24 @@ EOF
 fi
 
 echo "🎤 Installing Piper TTS engine..."
-
-# Download the correct Piper archive
-wget https://github.com/rhasspy/piper/releases/download/2023.11.14-2/piper_linux_x86_64.tar.gz
-
-# Extract it
-tar -xzf piper_linux_x86_64.tar.gz
-
-# Move the actual binary into place
-mv piper/piper ./piper-linux-x86_64
-chmod +x piper-linux-x86_64
-
-# Clean up leftover files
-rm -rf piper piper_linux_x86_64.tar.gz
+wget -q https://github.com/rhasspy/piper/releases/latest/download/piper_linux_x86_64.tar.gz
+mkdir -p piper
+tar -xzf piper_linux_x86_64.tar.gz -C piper
+chmod +x piper/piper
+rm piper_linux_x86_64.tar.gz
 
 
-# Download voice model and config
-mkdir -p piper_models
-cd piper_models
-
-# Voice model
-if [ ! -s "en_US-lessac-medium.onnx" ]; then
-  echo "⬇️ Downloading Piper ONNX model..."
-  wget -O en_US-lessac-medium.onnx https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx
-fi
-
-# Config file
-if [ ! -s "en_US-lessac-medium.onnx.json" ]; then
-  echo "⬇️ Downloading Piper config..."
-  wget -O en_US-lessac-medium.onnx.json https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx.json
+# Download Piper voice model if not present
+mkdir -p piper
+if [ ! -f piper/en_US-amy-medium.onnx ]; then
+  echo "🎤 Downloading Amy voice model..."
+  wget -q https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/amy/medium/en_US-amy-medium.onnx \
+    -O piper/en_US-amy-medium.onnx
+  wget -q https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/amy/medium/en_US-amy-medium.onnx.json \
+    -O piper/en_US-amy-medium.onnx.json
 fi
 
 cd ..
-
-
-
 
 echo "🧹 Cleaning up..."
 apt autoremove -y

@@ -1,98 +1,42 @@
 # RavenSpeak
 
-**RavenSpeak** is a modular voice assistant designed to run locally or hybrid with remote AI backends. It supports real-time voice interaction through STT (Speech-to-Text), intelligent command routing, and TTS (Text-to-Speech) output.
+**RavenSpeak** is a modular, privacy-first voice assistant that runs locally with optional AI integration. It supports real-time voice interaction using microphone input, speech-to-text transcription, intelligent command routing (via Snips NLU), and text-to-speech output using Piper.
+
+---
 
 ## 🎯 Project Goals
 
-- ✅ Work fully offline with fallback to Ollama or ChatGPT
-- 🎤 Enable live voice input via microphone
-- 🧠 Route commands to built-in keyword handlers (e.g. weather)
-- 🗣️ Speak responses using natural, local voice synthesis
-- 🧩 Modular architecture for easily adding new handlers
-
-## ✨ Features
-
-- Modular command handlers (weather, jokes, quotes)
-- Local TTS using [Piper](https://github.com/rhasspy/piper)
-- Optional remote AI (Ollama, ChatGPT, Claude)
-- Easy configuration using `.env` and `config.py`
-- Wake word support (planned)
+- ✅ Run fully offline on local hardware
+- ✅ Support fallback to AI backends (Ollama, ChatGPT)
+- 🎤 Accept real-time voice input
+- 🧠 Understand user intent via structured NLP
+- 🗣️ Speak responses clearly using local TTS
+- 🧩 Be modular, hackable, and fun to extend
 
 ---
 
-## 🚀 Getting Started
+## 🧠 Intent Recognition with Snips NLU
 
-1. Clone the repo:
+RavenSpeak uses [Snips NLU](https://github.com/snipsco/snips-nlu) to extract intent and parameters from user speech.
 
-   ```bash
-   git clone https://github.com/yourusername/ravenspeak.git
-   cd ravenspeak
-   ```
+- 🌱 Intents are defined using sample utterances
+- 🧠 Slots/entities (e.g., city names) can be extracted
+- ⚡ Fast and lightweight, runs entirely offline
+- 🔌 Routes user input to the appropriate handler (weather, joke, etc.)
+- 🤖 Future fallback: if Snips cannot match, text may be passed to an AI model
 
-2. Set up the virtual environment:
-
-   ```bash
-   python3 -m venv .venv
-   source .venv/bin/activate
-   pip install -r requirements.txt
-   ```
-
-3. Install system dependencies:
-
-   ```bash
-   ./system-setup.sh
-   ```
-
-4. Run the assistant:
-
-   ```bash
-   python3 main.py
-   ```
-
----
-
-## 🔧 Configuration
-
-Edit `config.py` and `.env` to customize:
-
-- OpenWeather API key (for weather handler)
-- Ollama or ChatGPT endpoint (optional)
-- Default city for weather
-- Voice model path (if changed)
-
----
-
-## 🧩 Handlers
-
-### 📡 Weather Handler
-
-Uses OpenWeather One Call API 3.0 to provide:
-
-- 🌤 Current weather – 1-hour snapshot
-- 🕓 Hourly forecast – 48-hour (returns next 3 hours)
-- 📅 Daily forecast – 8-day (returns next 3 days)
-
-Users can set a default city or ask about any supported location (e.g. "weather in Seattle").
+> Example: “What’s the weather in Boston today?” → `get_weather` with `{location: boston}`
 
 ---
 
 ## 🔊 Text-to-Speech (TTS) with Piper
 
-RavenSpeak uses [Piper TTS](https://github.com/rhasspy/piper) to generate high-quality, local speech responses.
+RavenSpeak uses [Piper TTS](https://github.com/rhasspy/piper) to generate natural-sounding, offline speech.
 
-### ✅ Voice Model
+- Uses `en_US-amy-medium` voice model (single-speaker, no speaker ID needed)
+- Converts text → `.wav` → audio playback via `aplay`
 
-We use the `en_US-amy-medium` model, a single-speaker voice that:
-
-- Does not require `--speaker`
-- Runs efficiently on CPUs without GPU
-- Sounds clear and natural
-
-### 🎤 How It Works
-
-Text is sent to Piper via stdin. The response is written to a `.wav` file and played using `aplay`.
-
-### 🧪 Manual Test
+### 🧪 Manual TTS Test
 
 ```bash
 echo "Raven is online." | ./piper/piper \
@@ -100,22 +44,81 @@ echo "Raven is online." | ./piper/piper \
   --output_file test.wav
 
 aplay test.wav
-```
 
----
+🎙️ Full Voice Interaction Flow
 
-## 🎙️ Full Voice Flow
+    User speaks (mic input via PyAudio)
 
-Once configured, RavenSpeak:
+    STT transcribes voice to text
 
-1. Listens for wake words (future)
-2. Records and transcribes microphone input
-3. Routes text to handler or AI
-4. Speaks the reply using Piper
+    Snips NLU parses intent and parameters
 
----
+    Raven routes to correct handler (get_weather, etc.)
 
-## 📄 License
+    Text response is synthesized by Piper and played
 
-MIT License. 
+🧩 Modular Handlers
 
+Each function (weather, jokes, quotes, etc.) is implemented as a handler module. Raven uses intent-to-handler mapping to dispatch requests.
+📡 Weather Handler
+
+Uses OpenWeather One Call API 3.0 to provide:
+
+    🌤 Current weather – 1-hour snapshot
+
+    🕓 Hourly forecast – next 3 hours
+
+    📅 Daily forecast – next 3 days
+
+Works with specific city/state/country or a default fallback.
+🧰 Getting Started
+1. Clone the repository
+
+git clone https://github.com/yourusername/ravenspeak.git
+cd ravenspeak
+
+2. Set up Python virtual environment
+
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+
+3. Install system dependencies
+
+./system-setup.sh
+
+4. Run RavenSpeak
+
+python3 main.py
+
+🔧 Configuration
+
+Edit config.py and .env to control:
+
+    OpenWeather API key
+
+    Default city, state, and country
+
+    Piper model location
+
+    Optional AI endpoint (Ollama or OpenAI)
+
+🐚 Controlling ALSA Output
+
+To suppress noisy ALSA error messages:
+
+python3 main.py 2>/dev/null
+
+📦 Planned Enhancements
+
+    Wake word detection
+
+    AI fallback via LLM (Ollama)
+
+    More handler types (Home Assistant, system commands, reminders, etc.)
+
+    Whisper-based offline STT
+
+📄 License
+
+MIT License.

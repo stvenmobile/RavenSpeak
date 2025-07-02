@@ -42,3 +42,7 @@ build/
 /piper/*.tar.gz
 /piper/test.wav
 /piper/*.wav
+
+# Voice models (Piper TTS)
+piper/*.onnx
+piper/*.onnx.json
