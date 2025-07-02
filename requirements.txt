@@ -1,0 +1,11 @@
+whispercpp         # or leave placeholder if using subprocess to call binary
+piper-tts
+requests
+flask              # if adding API endpoint later
+pyttsx3            # optional backup TTS engine
+pyaudio
+SpeechRecognition
+sounddevice        # or pyaudio or alsaaudio depending on input method
+numpy
+python-dotenv
+soundfile          # optional for audio playback libs

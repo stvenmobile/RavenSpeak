@@ -1,0 +1,44 @@
+# Environment files
+.env
+.venv/
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Log/output files
+*.log
+*.tmp
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Audio files (if you store generated TTS or recordings)
+*.wav
+*.mp3
+
+# Backup or editor files
+*.swp
+*.swo
+*~
+
+# VSCode / PyCharm config (optional)
+.vscode/
+.idea/
+
+# Installers or archives
+*.zip
+*.tar.gz
+*.egg-info/
+dist/
+build/
+
+# Piper voice binary and unpacked espeak-ng support data
+/piper/espeak-ng/
+/piper/espeak-ng-data/
+/piper/lib*.so*
+/piper/pkgconfig/
+/piper/*.ort
+/piper/*.tar.gz
+/piper/test.wav
+/piper/*.wav
