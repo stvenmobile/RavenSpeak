@@ -1,124 +1,170 @@
-# RavenSpeak
+## RavenSpeak Voice Assistant
 
-**RavenSpeak** is a modular, privacy-first voice assistant that runs locally with optional AI integration. It supports real-time voice interaction using microphone input, speech-to-text transcription, intelligent command routing (via Snips NLU), and text-to-speech output using Piper.
-
----
-
-## 🎯 Project Goals
-
-- ✅ Run fully offline on local hardware
-- ✅ Support fallback to AI backends (Ollama, ChatGPT)
-- 🎤 Accept real-time voice input
-- 🧠 Understand user intent via structured NLP
-- 🗣️ Speak responses clearly using local TTS
-- 🧩 Be modular, hackable, and fun to extend
+RavenSpeak is a modular, privacy-conscious voice assistant system that runs entirely offline. It listens for commands, interprets them using natural language understanding (NLU), responds using locally generated speech, and can route certain requests to an AI backend like Ollama.
 
 ---
 
-## 🧠 Intent Recognition with Snips NLU
+## 🧠 Architecture Overview
 
-RavenSpeak uses [Snips NLU](https://github.com/snipsco/snips-nlu) to extract intent and parameters from user speech.
-
-- 🌱 Intents are defined using sample utterances
-- 🧠 Slots/entities (e.g., city names) can be extracted
-- ⚡ Fast and lightweight, runs entirely offline
-- 🔌 Routes user input to the appropriate handler (weather, joke, etc.)
-- 🤖 Future fallback: if Snips cannot match, text may be passed to an AI model
-
-> Example: “What’s the weather in Boston today?” → `get_weather` with `{location: boston}`
+* **Wake Word**: Passive listener for "Raven" using VAD and keyword spotting
+* **Speech-to-Text (STT)**: Converts user speech to text
+* **NLU**: Uses **Rasa** to detect user intent and extract structured information (slots)
+* **Handlers**: Python modules (e.g., `weather_handler.py`) respond to specific intents
+* **AI Backend**: Long-form questions or open-ended requests are routed to an LLM (Ollama) with role and model control
+* **Text-to-Speech (TTS)**: Piper generates natural-sounding responses
 
 ---
 
-## 🔊 Text-to-Speech (TTS) with Piper
+## 🔄 Intent and AI Request Flow
 
-RavenSpeak uses [Piper TTS](https://github.com/rhasspy/piper) to generate natural-sounding, offline speech.
+### AI Preamble + Structured Capture
 
-- Uses `en_US-amy-medium` voice model (single-speaker, no speaker ID needed)
-- Converts text → `.wav` → audio playback via `aplay`
+RavenSpeak distinguishes AI queries from local tasks using a structured pattern:
 
-### 🧪 Manual TTS Test
+#### 🧭 Example Query
+
+```
+Raven, I have an AI question. Use GPT-4 as a philosophy professor.
+Question start: How does materialism compare to dualism and idealism? Question stop.
+```
+
+### 🧠 Rasa Flow
+
+* **Intent**: `ai_request`
+* **Slots extracted**:
+
+  * `model`: "GPT-4"
+  * `role`: "philosophy professor"
+  * `temperature`: optional, from user or `config.py`
+* **Behavior**:
+
+  * When `intent == ai_request`, Raven enters *AI input capture mode*
+  * On `"question start"`, Raven begins buffering transcription
+  * On `"question stop"`, Raven submits the buffered content to the AI backend
+
+If no `question start/stop` is found, Raven sends the entire user utterance to the AI by default.
+
+### 💬 Response Flow
+
+* Raven receives the answer from the AI
+* Converts it to speech using Piper
+* Speaks the response to the user
+
+---
+
+## 🗃️ Config File: `config.py`
+
+Customize system behavior:
+
+```python
+DEFAULT_MODEL = "llama3"
+DEFAULT_ROLE = "helpful assistant"
+DEFAULT_TEMP = 0.7
+OLLAMA_API_URL = "http://192.168.1.50:11435/api/generate"
+```
+
+---
+
+## 📁 Directory Layout
+
+```
+RavenSpeak/
+├── main.py                 # Main entry point
+├── config.py              # System defaults
+├── handlers/
+│   └── weather_handler.py # Local task handler
+├── stt/
+│   └── mic_listener.py    # Microphone input
+├── tts/
+│   └── piper_interface.py # Piper TTS integration
+├── piper/                 # TTS models and binary
+├── rasa/                  # Rasa NLU project (intents, stories)
+│   ├── domain.yml
+│   ├── data/
+│   ├── actions.py
+│   ├── config.yml
+│   ├── credentials.yml
+│   └── endpoints.yml
+├── utilities/             # Command-line tools
+│   ├── rscontrol          # Supervisor CLI tool to manage RavenSpeak components
+│   └── rs_net_snapshot.py # Network data snapshot used by rscontrol status hardware
+└── .venv/                 # Python virtual environment
+```
+
+---
+
+## ✅ Setup Instructions
+
+### 1. Create virtual environment
 
 ```bash
-echo "Raven is online." | ./piper/piper \
-  --model ./piper/en_US-amy-medium.onnx \
-  --output_file test.wav
-
-aplay test.wav
-
-🎙️ Full Voice Interaction Flow
-
-    User speaks (mic input via PyAudio)
-
-    STT transcribes voice to text
-
-    Snips NLU parses intent and parameters
-
-    Raven routes to correct handler (get_weather, etc.)
-
-    Text response is synthesized by Piper and played
-
-🧩 Modular Handlers
-
-Each function (weather, jokes, quotes, etc.) is implemented as a handler module. Raven uses intent-to-handler mapping to dispatch requests.
-📡 Weather Handler
-
-Uses OpenWeather One Call API 3.0 to provide:
-
-    🌤 Current weather – 1-hour snapshot
-
-    🕓 Hourly forecast – next 3 hours
-
-    📅 Daily forecast – next 3 days
-
-Works with specific city/state/country or a default fallback.
-🧰 Getting Started
-1. Clone the repository
-
-git clone https://github.com/yourusername/ravenspeak.git
-cd ravenspeak
-
-2. Set up Python virtual environment
-
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+```
 
-3. Install system dependencies
+### 2. Install Rasa and tools
 
-./system-setup.sh
+```bash
+pip install rasa
+rasa init --no-prompt
+```
 
-4. Run RavenSpeak
+### 3. Add your preferred voice model to `piper/`
 
-python3 main.py
+Download `en_US-amy-medium.onnx` and its JSON config into the `piper/` directory.
 
-🔧 Configuration
+---
 
-Edit config.py and .env to control:
+## 🔁 Running the Assistant
 
-    OpenWeather API key
 
-    Default city, state, and country
+You can control all components using the RSControl utility.
+This includes: main.py      - main voice assistant python module (Raven)
+               rasa_actions - actions server for Rasa NLP component
+               rasa_shell   - CLI for Rasa_NLP component
+               all          - all of the above
 
-    Piper model location
 
-    Optional AI endpoint (Ollama or OpenAI)
+### Start components:
+```bash
+./utilities/rscontrol start all|rasa_actions|rasa_shell
+```
 
-🐚 Controlling ALSA Output
+### Check status:
+```bash
+./utilities/rscontrol status all|rasa_actions|rasa_shell
+```
 
-To suppress noisy ALSA error messages:
+### Stop components:
+```bash
+./utilities/rscontrol stop all|rasa_actions|rasa_shell
+```
 
-python3 main.py 2>/dev/null
+### Check system hardware status:
+```bash
+./utilities/rscontrol status hardware
+```
 
-📦 Planned Enhancements
+Includes CPU load, memory usage, disk, CPU temperature, and network bandwidth usage by interface (last hour).
 
-    Wake word detection
 
-    AI fallback via LLM (Ollama)
+---
 
-    More handler types (Home Assistant, system commands, reminders, etc.)
+## 📦 Future Enhancements
 
-    Whisper-based offline STT
+* Add streaming STT
+* Memory for AI threads
+* Joystick/robot control hooks
+* Home Assistant integration
 
-📄 License
+---
 
-MIT License.
+## ✨ Credits
+
+Created by @stvenmobile for the RavenSpeak voice assistant project, built on:
+
+* Rasa NLU
+* Piper TTS
+* Ollama (LLM backend)
+* Whisper / Vosk / OpenAI STT engines (modular)

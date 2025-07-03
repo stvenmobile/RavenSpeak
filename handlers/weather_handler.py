@@ -1,21 +1,16 @@
 # handlers/weather_handler.py
 
-import os
 import requests
-from dotenv import load_dotenv
+from config import OPENWEATHER_API_KEY, OPENWEATHER_API_URL, OPENWEATHER_GEO_URL
 
-load_dotenv()
-API_KEY = os.getenv("OPENWEATHER_API_KEY")
-ONECALL_URL = "https://api.openweathermap.org/data/3.0/onecall"
-GEO_URL = "http://api.openweathermap.org/geo/1.0/direct"
 
 def get_lat_lon(city):
     """Fetch latitude and longitude for a given city name."""
     try:
-        response = requests.get(GEO_URL, params={
+        response = requests.get(OPENWEATHER_GEO_URL, params={
             "q": city,
             "limit": 1,
-            "appid": API_KEY
+            "appid": OPENWEATHER_API_KEY
         })
         data = response.json()
         if not data:
@@ -30,7 +25,7 @@ def get_weather_summary(city, mode="current"):
     Get weather summary for a given city and mode:
     mode = 'current' | 'hourly' | 'daily'
     """
-    if not API_KEY:
+    if not OPENWEATHER_API_KEY:
         return "Weather API key is missing."
 
     lat, lon = get_lat_lon(city)
@@ -48,11 +43,11 @@ def get_weather_summary(city, mode="current"):
         return "I didn't understand the forecast type you wanted."
 
     try:
-        response = requests.get(ONECALL_URL, params={
+        response = requests.get(OPENWEATHER_API_URL, params={
             "lat": lat,
             "lon": lon,
             "exclude": exclude,
-            "appid": API_KEY,
+            "appid": OPENWEATHER_API_KEY,
             "units": "imperial"
         })
 

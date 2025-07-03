@@ -1,4 +1,5 @@
 import re
+from config import DEFAULT_CITY, DEFAULT_STATE, DEFAULT_COUNTRY
 from handlers.weather_handler import get_weather_summary
 from tts.piper_interface import speak
 from stt.mic_listener import listen_for_command
