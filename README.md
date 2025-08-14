@@ -4,14 +4,14 @@ RavenSpeak is a modular, privacy-conscious voice assistant system that runs enti
 
 ---
 
-## 🧠 Architecture Overview
+## 🧐 Architecture Overview
 
-* **Wake Word**: Passive listener for "Raven" using VAD and keyword spotting
+* **Wake Word** *(optional)*: Detects activation phrase (e.g., "Alexa")
 * **Speech-to-Text (STT)**: Converts user speech to text
 * **NLU**: Uses **Rasa** to detect user intent and extract structured information (slots)
 * **Handlers**: Python modules (e.g., `weather_handler.py`) respond to specific intents
-* **AI Backend**: Long-form questions or open-ended requests are routed to an LLM (Ollama) with role and model control
-* **Text-to-Speech (TTS)**: Piper generates natural-sounding responses
+* **AI Backend**: Long-form or complex requests are routed to an LLM like Ollama
+* **Text-to-Speech (TTS)**: Piper generates natural-sounding speech
 
 ---
 
@@ -21,9 +21,8 @@ RavenSpeak is a modular, privacy-conscious voice assistant system that runs enti
 
 RavenSpeak distinguishes AI queries from local tasks using a structured pattern:
 
-#### 🧭 Example Query
-
-```
+#### 🗭 Example Query
+```text
 Raven, I have an AI question. Use GPT-4 as a philosophy professor.
 Question start: How does materialism compare to dualism and idealism? Question stop.
 ```
@@ -32,35 +31,31 @@ Question start: How does materialism compare to dualism and idealism? Question s
 
 * **Intent**: `ai_request`
 * **Slots extracted**:
-
-  * `model`: "GPT-4"
-  * `role`: "philosophy professor"
-  * `temperature`: optional, from user or `config.py`
+  * `model`: e.g., "GPT-4"
+  * `role`: e.g., "philosophy professor"
+  * `temperature`: optional
 * **Behavior**:
+  * On `question start`, Raven buffers transcript
+  * On `question stop`, Raven sends text to Ollama
 
-  * When `intent == ai_request`, Raven enters *AI input capture mode*
-  * On `"question start"`, Raven begins buffering transcription
-  * On `"question stop"`, Raven submits the buffered content to the AI backend
-
-If no `question start/stop` is found, Raven sends the entire user utterance to the AI by default.
+If `question start/stop` is not used, the full utterance is sent.
 
 ### 💬 Response Flow
 
-* Raven receives the answer from the AI
-* Converts it to speech using Piper
-* Speaks the response to the user
+* AI responds via Ollama
+* Text is converted to speech via Piper
+* Response is spoken aloud to user
 
 ---
 
-## 🗃️ Config File: `config.py`
+## 📃 Config File: `config.py`
 
-Customize system behavior:
-
+Configure system defaults:
 ```python
 DEFAULT_MODEL = "llama3"
 DEFAULT_ROLE = "helpful assistant"
 DEFAULT_TEMP = 0.7
-OLLAMA_API_URL = "http://192.168.1.50:11435/api/generate"
+OLLAMA_API_URL = "http://192.168.1.60:11435/api/generate"
 ```
 
 ---
@@ -69,16 +64,16 @@ OLLAMA_API_URL = "http://192.168.1.50:11435/api/generate"
 
 ```
 RavenSpeak/
-├── main.py                 # Main entry point
-├── config.py              # System defaults
-├── handlers/
-│   └── weather_handler.py # Local task handler
-├── stt/
-│   └── mic_listener.py    # Microphone input
-├── tts/
-│   └── piper_interface.py # Piper TTS integration
-├── piper/                 # TTS models and binary
-├── rasa/                  # Rasa NLU project (intents, stories)
+├── main.py                 # Main assistant logic
+├── config.py              # System configuration
+├── handlers/              # Intent handlers
+│   └── weather_handler.py
+├── stt/                   # Microphone and STT components
+│   └── mic_listener.py
+├── tts/                   # Piper integration
+│   └── piper_interface.py
+├── piper/                 # Piper model and binary
+├── rasa/                  # Rasa configuration
 │   ├── domain.yml
 │   ├── data/
 │   ├── actions.py
@@ -86,8 +81,8 @@ RavenSpeak/
 │   ├── credentials.yml
 │   └── endpoints.yml
 ├── utilities/             # Command-line tools
-│   ├── rscontrol          # Supervisor CLI tool to manage RavenSpeak components
-│   └── rs_net_snapshot.py # Network data snapshot used by rscontrol status hardware
+│   ├── rscontrol          # Supervisor CLI
+│   └── rs_net_snapshot.py # Hourly network usage snapshot
 └── .venv/                 # Python virtual environment
 ```
 
@@ -96,75 +91,77 @@ RavenSpeak/
 ## ✅ Setup Instructions
 
 ### 1. Create virtual environment
-
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 2. Install Rasa and tools
-
+### 2. Install Rasa
 ```bash
 pip install rasa
 rasa init --no-prompt
 ```
 
-### 3. Add your preferred voice model to `piper/`
-
-Download `en_US-amy-medium.onnx` and its JSON config into the `piper/` directory.
+### 3. Add Piper voice model
+Place `en_US-amy-medium.onnx` and config JSON into `piper/`
 
 ---
 
 ## 🔁 Running the Assistant
 
+Use the `rscontrol` utility:
 
-You can control all components using the RSControl utility.
-This includes: main.py      - main voice assistant python module (Raven)
-               rasa_actions - actions server for Rasa NLP component
-               rasa_shell   - CLI for Rasa_NLP component
-               all          - all of the above
-
-
-### Start components:
+### Start all components:
 ```bash
-./utilities/rscontrol start all|rasa_actions|rasa_shell
+./utilities/rscontrol start raven
 ```
 
 ### Check status:
 ```bash
-./utilities/rscontrol status all|rasa_actions|rasa_shell
+./utilities/rscontrol status raven
 ```
 
-### Stop components:
+### Stop all components:
 ```bash
-./utilities/rscontrol stop all|rasa_actions|rasa_shell
+./utilities/rscontrol stop raven
 ```
 
-### Check system hardware status:
+### Restart all components:
+```bash
+./utilities/rscontrol restart raven
+```
+
+### View hardware/system status:
 ```bash
 ./utilities/rscontrol status hardware
 ```
+Includes CPU load, memory, disk, temperature, and last-hour network usage.
 
-Includes CPU load, memory usage, disk, CPU temperature, and network bandwidth usage by interface (last hour).
+---
 
+## 📆 Special Features
+
+* Sleep Mode: Say "Raven, go to sleep" to suspend interaction
+* Wake Up: Say "Raven, wake up" to resume interaction
+* Ignored speech during sleep mode
 
 ---
 
 ## 📦 Future Enhancements
 
-* Add streaming STT
-* Memory for AI threads
-* Joystick/robot control hooks
+* Streaming STT
 * Home Assistant integration
+* Local RAG retrieval augmentation
+* Multilingual support
 
 ---
 
 ## ✨ Credits
 
-Created by @stvenmobile for the RavenSpeak voice assistant project, built on:
+Created by @stvenmobile. Built with:
 
 * Rasa NLU
 * Piper TTS
-* Ollama (LLM backend)
-* Whisper / Vosk / OpenAI STT engines (modular)
+* Ollama for local LLM inference
+* Whisper/Vosk for STT (modular backend)

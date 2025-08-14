@@ -1,21 +1,28 @@
 # stt/mic_listener.py
 
-import speech_recognition as sr
+import sounddevice as sd
+import numpy as np
+from faster_whisper import WhisperModel
+from utilities.logger import log
 
-def listen_for_command(timeout=None, phrase_time_limit=10):
-    recognizer = sr.Recognizer()
+SAMPLE_RATE = 16000
+DURATION = 5  # seconds
 
-    with sr.Microphone() as source:
-        print("🎤 Listening...")
-        recognizer.adjust_for_ambient_noise(source)
-        try:
-            audio = recognizer.listen(source, timeout=timeout, phrase_time_limit=phrase_time_limit)
-            text = recognizer.recognize_google(audio)
-            print(f"🗣️ Heard: {text}")
-            return text
-        except sr.UnknownValueError:
-            print("🤷 Could not understand audio.")
-        except sr.RequestError as e:
-            print(f"❌ API Error: {e}")
-    
-    return None
+model = WhisperModel("base.en", compute_type="int8")
+
+def listen_for_command():
+    log("🎙️ Listening...")
+    with sd.InputStream(samplerate=SAMPLE_RATE, channels=1, dtype='float32') as stream:
+        frames = []
+        for _ in range(int(SAMPLE_RATE * DURATION / 1024)):
+            data, _ = stream.read(1024)
+            frames.append(data)
+
+    audio = np.concatenate(frames, axis=0)
+    audio = np.squeeze(audio)
+
+    log("🧠 Transcribing...")
+    segments, _ = model.transcribe(audio, language="en")
+    result = " ".join(segment.text for segment in segments)
+    log(f"🗣️ Transcribed: {result}")
+    return result

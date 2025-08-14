@@ -1,99 +1,72 @@
 version: "3.1"
 
 nlu:
-- intent: greet
-  examples: |
-    - hey
-    - hello
-    - hi
-    - hello there
-    - good morning
-    - good evening
-    - moin
-    - hey there
-    - let's go
-    - hey dude
-    - goodmorning
-    - goodevening
-    - good afternoon
+  - intent: greet
+    examples: |
+      - hello
+      - hi
+      - hey there
+      - good morning
+      - good afternoon
+      - greetings
 
-- intent: goodbye
-  examples: |
-    - cu
-    - good by
-    - cee you later
-    - good night
-    - bye
-    - goodbye
-    - have a nice day
-    - see you around
-    - bye bye
-    - see you later
+  - intent: goodbye
+    examples: |
+      - goodbye
+      - bye
+      - see you later
+      - talk to you soon
+      - catch you later
 
-- intent: affirm
-  examples: |
-    - yes
-    - y
-    - indeed
-    - of course
-    - that sounds good
-    - correct
+  - intent: wake
+    examples: |
+      - wake up
+      - Raven wake up
+      - please wake up
+      - I need you
+      - are you there
+      - come back online
 
-- intent: deny
-  examples: |
-    - no
-    - n
-    - never
-    - I don't think so
-    - don't like that
-    - no way
-    - not really
+  - intent: sleep
+    examples: |
+      - go to sleep
+      - sleep now
+      - rest
+      - take a nap
+      - power down
 
-- intent: mood_great
-  examples: |
-    - perfect
-    - great
-    - amazing
-    - feeling like a king
-    - wonderful
-    - I am feeling very good
-    - I am great
-    - I am amazing
-    - I am going to save the world
-    - super stoked
-    - extremely good
-    - so so perfect
-    - so good
-    - so perfect
+  - intent: weather
+    examples: |
+      - what is the weather
+      - what's the temperature
+      - is it raining
+      - forecast for today
+      - how hot is it in [Los Gatos](location)
+      - will it rain in [New York](location)
+      - temperature in [San Diego](location)
 
-- intent: mood_unhappy
-  examples: |
-    - my day was horrible
-    - I am sad
-    - I don't feel very well
-    - I am disappointed
-    - super sad
-    - I'm so sad
-    - sad
-    - very sad
-    - unhappy
-    - not good
-    - not very good
-    - extremly sad
-    - so saad
-    - so sad
+  - intent: acknowledge
+    examples: |
+      - all right
+      - okay
+      - mm-hmm
+      - got it
+      - sure
+      - fine
+      - yep
+      - I understand
+      - understand
 
-- intent: bot_challenge
-  examples: |
-    - are you a bot?
-    - are you a human?
-    - am I talking to a bot?
-    - am I talking to a human?
-
-
-- intent: get_weather
-  examples: |
-    - what's the weather in [Charlotte](location)?
-    - tell me the weather for [New York](location)
-    - show me the weather forecast in [Matthews](location)
-    - weather report for [Boston](location)
+  - intent: ai_query
+    examples: |
+      - role is helpful assistant
+      - temperature should be 0.7
+      - what's the history of San Diego
+      - who is Alan Turing
+      - what caused the fall of the Roman Empire
+      - tell me how neural networks work
+      - explain string theory
+      - when was the Declaration of Independence signed
+      - where is the International Space Station
+      - why is the sky blue
+      - how does gravity work

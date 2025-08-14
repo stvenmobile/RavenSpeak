@@ -1,0 +1,9 @@
+to start:
+In one terminal:
+rasa run actions
+
+In another terminal:
+rasa shell --port 5005 --enable-api
+
+In third terminal:
+python3 main.py

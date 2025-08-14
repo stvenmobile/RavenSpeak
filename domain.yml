@@ -3,49 +3,21 @@ version: "3.1"
 intents:
   - greet
   - goodbye
-  - affirm
-  - deny
-  - mood_great
-  - mood_unhappy
-  - bot_challenge
-  - get_weather
+  - sleep
+  - wake
+  - weather       # Assuming you have weather intent too
 
-entities:
-  - location
-
-slots:
-  location:
-    type: text
-    mappings:
-      - type: from_entity
-        entity: location
+actions:
+  - action_go_to_sleep
+  - action_wake
+  - action_weather  # Include if defined in your actions.py
 
 responses:
   utter_greet:
-  - text: "Hey! How are you?"
-
-  utter_cheer_up:
-  - text: "Here is something to cheer you up:"
-    image: "https://i.imgur.com/nGF1K8f.jpg"
-
-  utter_did_that_help:
-  - text: "Did that help you?"
-
-  utter_happy:
-  - text: "Great, carry on!"
+    - text: "Hello! How can I help you?"
 
   utter_goodbye:
-  - text: "Bye"
-
-  utter_iamabot:
-  - text: "I am a bot, powered by Rasa."
-
-  utter_ask_location:
-  - text: "Which location are you interested in?"
-
-actions:
-  - action_get_weather
-
+    - text: "Goodbye! Talk to you soon."
 
 session_config:
   session_expiration_time: 60

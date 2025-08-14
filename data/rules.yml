@@ -1,18 +1,22 @@
 version: "3.1"
 
 rules:
+  - rule: Raven goes to sleep
+    steps:
+      - intent: sleep
+      - action: action_go_to_sleep
 
-- rule: Say goodbye anytime the user says goodbye
-  steps:
-  - intent: goodbye
-  - action: utter_goodbye
+  - rule: Raven wakes up
+    steps:
+      - intent: wake
+      - action: action_wake
 
-- rule: Say 'I am a bot' anytime the user challenges
-  steps:
-  - intent: bot_challenge
-  - action: utter_iamabot
+  - rule: Say goodbye
+    steps:
+      - intent: goodbye
+      - action: utter_goodbye
 
-- rule: Get weather
-  steps:
-    - intent: get_weather
-    - action: action_get_weather
+  - rule: Greet user
+    steps:
+      - intent: greet
+      - action: utter_greet

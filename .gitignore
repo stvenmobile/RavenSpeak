@@ -1,3 +1,8 @@
+# Rasa cache and model artifacts
+.rasa/cache/
+.rasa/tmp*/ 
+.rasa/models/
+
 # Environment files
 .env
 .venv/
